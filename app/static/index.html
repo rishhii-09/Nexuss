@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#080d18" />
+  <title>NexusAI — Gateway analytics</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <link rel="stylesheet" href="/static/dashboard.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#overview" aria-label="NexusAI dashboard">
+        <span class="brand-mark" aria-hidden="true">N</span>
+        <span>Nexus<span class="brand-light">AI</span></span>
+      </a>
+
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="navigation" aria-label="Dashboard sections">
+        <a class="nav-link active" href="#overview">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-link" href="#recent">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="7" cy="5" r="1"/><circle cx="7" cy="12" r="1"/><circle cx="7" cy="19" r="1"/></svg>
+          Requests
+        </a>
+        <a class="nav-link" href="#analytics">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m8 10V5m8 14v-7"/></svg>
+          Analytics
+        </a>
+        <a class="nav-link" href="#models">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.8 7.5 4.4 7.5-4.4M12 12.2V21"/></svg>
+          Models
+        </a>
+        <a class="nav-link" href="#providers">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.8 9h16.4M3.8 15h16.4M12 3.5a13 13 0 0 1 0 17M12 3.5a13 13 0 0 0 0 17"/></svg>
+          Providers
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="secure-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></svg>
+        </span>
+        <span><strong>Admin dashboard</strong><small>Protected by your admin key</small></span>
+      </div>
+    </aside>
+
+    <main class="main-content" id="overview">
+      <header class="topbar">
+        <div class="page-heading">
+          <div class="eyebrow">NEXUSAI GATEWAY</div>
+          <h1>Analytics overview</h1>
+          <p>Monitor usage and performance across your gateway.</p>
+        </div>
+        <form class="toolbar" id="dashboardForm">
+          <label class="sr-only" for="days">Reporting period</label>
+          <select id="days" name="days">
+            <option value="1">Last 24 hours</option>
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+          <label class="sr-only" for="adminKey">Admin API key</label>
+          <input id="adminKey" type="password" placeholder="Admin API key" autocomplete="current-password" />
+          <button class="button button-primary" id="refresh" type="submit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.6-2L20 12M4 12l2.8 5a7 7 0 0 0 11.6-2"/></svg>
+            <span>Load analytics</span>
+          </button>
+        </form>
+      </header>
+
+      <div class="notice notice-info" id="notice" role="status" aria-live="polite">
+        <span class="notice-indicator" aria-hidden="true"></span>
+        <span id="noticeText">Enter the admin API key configured on the server to load gateway analytics.</span>
+      </div>
+
+      <div id="content" hidden>
+        <section class="summary-grid" id="summaryCards" aria-label="Usage summary"></section>
+
+        <section class="analytics-grid" id="analytics" aria-label="Usage analytics">
+          <article class="panel panel-cost">
+            <div class="panel-heading">
+              <div><h2>Cost over time</h2><p>Daily estimated spend in USD</p></div>
+              <span class="panel-period" id="costPeriod">—</span>
+            </div>
+            <div class="chart-wrap chart-wrap-line">
+              <canvas id="costChart" aria-label="Daily cost over time" role="img"></canvas>
+              <p class="chart-state" id="costChartState" hidden></p>
+            </div>
+          </article>
+          <article class="panel panel-provider" id="providers">
+            <div class="panel-heading">
+              <div><h2>Requests by provider</h2><p>Share of requests in this period</p></div>
+            </div>
+            <div class="provider-chart-wrap">
+              <div class="chart-wrap chart-wrap-doughnut">
+                <canvas id="providerChart" aria-label="Requests grouped by provider" role="img"></canvas>
+                <p class="chart-state" id="providerChartState" hidden></p>
+              </div>
+              <div class="provider-legend" id="providerLegend" aria-label="Provider request totals"></div>
+            </div>
+          </article>
+          <article class="panel panel-models" id="models">
+            <div class="panel-heading">
+              <div><h2>Model usage</h2><p>Requests by model</p></div>
+            </div>
+            <div class="model-list" id="modelList"></div>
+          </article>
+          <article class="panel panel-tokens">
+            <div class="panel-heading">
+              <div><h2>Token analytics</h2><p>Input and output tokens by day</p></div>
+              <div class="chart-legend" aria-label="Token chart legend">
+                <span><i class="legend-dot legend-input"></i>Input</span>
+                <span><i class="legend-dot legend-output"></i>Output</span>
+              </div>
+            </div>
+            <div class="chart-wrap chart-wrap-bar">
+              <canvas id="tokenChart" aria-label="Daily input and output tokens" role="img"></canvas>
+              <p class="chart-state" id="tokenChartState" hidden></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel requests-panel" id="recent">
+          <div class="panel-heading requests-heading">
+            <div><h2>Recent requests</h2><p>Latest logged gateway activity</p></div>
+            <span class="record-count" id="requestCount"></span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Time</th><th>Provider</th><th>Model</th><th class="numeric">Tokens</th><th class="numeric">Cost (USD)</th><th class="numeric">Latency</th><th>Status</th></tr>
+              </thead>
+              <tbody id="recentRows"></tbody>
+            </table>
+            <p class="table-empty" id="recentEmpty" hidden>No requests were logged in this period.</p>
+          </div>
+        </section>
+        <p class="data-note">Metrics are calculated from requests recorded by this gateway. Cost is the backend’s estimated USD cost.</p>
+      </div>
+    </main>
+  </div>
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>
