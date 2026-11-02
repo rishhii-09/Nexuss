@@ -400,6 +400,44 @@ All via env / `.env` (see `.env.example`):
 | `GET` | `/metrics` | optional bearer token | Prometheus metrics (disabled by default; omitted from OpenAPI) |
 | `GET` | `/health` | none | Liveness + configured providers |
 
+## CRUD and database usage
+
+The gateway uses async SQLAlchemy models in `app/models.py` and initializes
+tables on startup. SQLite is the default; set `DATABASE_URL` to use PostgreSQL
+instead. The main persisted records are gateway API keys (`api_keys`) and
+request usage logs (`request_logs`).
+
+Gateway API keys have admin-protected CRUD-style management endpoints:
+
+| CRUD action | Endpoint | How it is used |
+|---|---|---|
+| **Create** | `POST /admin/keys` | Creates a client key with an optional name, monthly budget, and per-minute rate limit. The raw key is returned once; only its SHA-256 hash and display prefix are stored. |
+| **Read** | `GET /admin/keys` | Lists key metadata and prefixes for the admin dashboard; it never returns the full key. |
+| **Update** | `PATCH /admin/keys/{id}` | Partially updates the name, budget, rate limit, or active state. Omitted fields stay unchanged; send `null` to clear an optional budget or rate limit. |
+| **Delete/revoke** | `DELETE /admin/keys/{id}` | Revokes the key by setting `active` to `false`; it is not physically deleted. |
+
+Use the admin key as a bearer token for these endpoints. For example, create a
+gateway key from PowerShell:
+
+```powershell
+$adminKey = Read-Host "Enter ADMIN_API_KEY"
+$headers = @{ Authorization = "Bearer $adminKey" }
+Invoke-RestMethod `
+  -Uri "http://127.0.0.1:8000/admin/keys" `
+  -Method Post `
+  -Headers $headers `
+  -ContentType "application/json" `
+  -Body '{"name":"my-app","monthly_budget_usd":25,"rate_limit_per_min":60}'
+```
+
+Request logs follow a different lifecycle. The gateway automatically creates a
+`request_logs` record for completed or failed chat and embedding requests.
+These records store provider/model, token counts, estimated cost, latency,
+status, retry attempts, and the gateway key ID; prompts and completions are not
+stored in the request log. The admin-only `GET /api/stats?days=N` endpoint
+reads and aggregates those records for the dashboard. There are no public
+update or delete endpoints for request logs.
+
 ## Docker
 
 The Compose configuration mounts the Doubleword key as a Docker secret by
