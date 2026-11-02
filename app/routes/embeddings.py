@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from app.budget import enforce_budget
 from app.config import get_settings
 from app.models import ApiKey
+from app.observability.request_context import get_request_id
 from app.routing import UpstreamError, run_embed
 from app.schemas import EmbeddingRequest
 
@@ -18,9 +19,10 @@ def _error_response(exc: UpstreamError) -> JSONResponse:
         status_code=exc.status_code,
         content={
             "error": {
-                "message": exc.message,
+                "message": "The upstream provider request failed.",
                 "type": "upstream_error",
                 "code": exc.status_code,
+                "request_id": get_request_id(),
             }
         },
     )

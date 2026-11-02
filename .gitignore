@@ -45,6 +45,7 @@ Thumbs.db
 
 # Logs
 *.log
+secrets
 
 # Build artifacts
 build/

@@ -13,6 +13,7 @@ gate chain for a chat completion is: authenticate → rate limit → budget.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from time import perf_counter
 
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import func, select
@@ -20,6 +21,7 @@ from sqlalchemy import func, select
 from app.config import get_settings
 from app.db import SessionLocal
 from app.models import ApiKey, RequestLog
+from app.observability.metrics import record_budget_rejected, record_request
 from app.ratelimit import enforce_rate_limit
 
 
@@ -64,11 +66,22 @@ async def enforce_budget(
     Returns the authenticated ``ApiKey`` so routes can depend on this in place of
     ``enforce_rate_limit`` / ``require_api_key`` directly.
     """
+    started = perf_counter()
     budget = effective_budget(api_key, get_settings().monthly_budget_usd)
     if budget <= 0:
         return api_key
     spent = await month_to_date_spend(api_key.id)
     if spent >= budget:
+        record_budget_rejected()
+        record_request(
+            provider="unknown",
+            model="other",
+            status="budget_rejected",
+            streamed=False,
+            duration_seconds=perf_counter() - started,
+            attempts=0,
+            api_key_id=api_key.id,
+        )
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail=(

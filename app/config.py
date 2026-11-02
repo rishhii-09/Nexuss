@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -70,6 +71,15 @@ class Settings(BaseSettings):
     # Default per-key monthly spend cap in USD (calendar month, UTC). 0 disables
     # budget enforcement globally; a key's own monthly_budget_usd overrides this.
     monthly_budget_usd: float = Field(default=0.0, ge=0)
+
+    # Prometheus endpoint is opt-in. When configured, METRICS_TOKEN protects
+    # the exposition endpoint with bearer authentication.
+    metrics_enabled: bool = False
+    metrics_token: str | None = None
+
+    # Application log output. JSON is the production-friendly default.
+    log_level: str = "INFO"
+    log_format: Literal["json", "text"] = "json"
 
     # CORS allowlist for the dashboard / browser clients. Comma-separated.
     cors_origins: str = "*"

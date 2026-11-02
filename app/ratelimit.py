@@ -23,6 +23,7 @@ from fastapi import Depends, HTTPException, Request, status
 from app.auth import require_api_key
 from app.config import get_settings
 from app.models import ApiKey
+from app.observability.metrics import record_rate_limited, record_request
 
 WINDOW_SECONDS = 60.0
 
@@ -75,10 +76,21 @@ async def enforce_rate_limit(
     Returns the authenticated ``ApiKey`` so routes can depend on this in place
     of ``require_api_key`` directly.
     """
+    started = time.perf_counter()
     limiter: RateLimiter = request.app.state.rate_limiter
     limit = effective_limit(api_key, get_settings().rate_limit_per_minute)
     allowed, retry_after = limiter.check(api_key.id, limit)
     if not allowed:
+        record_rate_limited()
+        record_request(
+            provider="unknown",
+            model="other",
+            status="rate_limited",
+            streamed=False,
+            duration_seconds=time.perf_counter() - started,
+            attempts=0,
+            api_key_id=api_key.id,
+        )
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Rate limit exceeded ({limit}/min).",

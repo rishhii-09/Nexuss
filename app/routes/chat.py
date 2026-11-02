@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from app.budget import enforce_budget
 from app.config import get_settings
 from app.models import ApiKey
+from app.observability.request_context import get_request_id
 from app.routing import UpstreamError, open_stream, run_complete, stream_body
 from app.schemas import ChatCompletionRequest
 
@@ -18,9 +19,10 @@ def _error_response(exc: UpstreamError) -> JSONResponse:
         status_code=exc.status_code,
         content={
             "error": {
-                "message": exc.message,
+                "message": "The upstream provider request failed.",
                 "type": "upstream_error",
                 "code": exc.status_code,
+                "request_id": get_request_id(),
             }
         },
     )
