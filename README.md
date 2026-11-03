@@ -1,4 +1,4 @@
-# Nexuss – Multi-Provider LLM Gateway & Observability Framework!!🔀
+# Nexuss – Multi-Provider LLM Gateway Framework!!🔀
 
 An LLM Gateway is a centralized proxy layer between an application and multiple LLM providers that provides a unified API while managing model routing, authentication, retries and failover, usage monitoring, and cost optimization—without requiring changes to the application's core business logic.
 
