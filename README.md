@@ -1,8 +1,8 @@
-# LLM Gateway Using LiteLLM
+# Nexuss – Multi-Provider LLM Gateway & Observability Framework!!🔀
 
 An LLM Gateway is a centralized proxy layer between an application and multiple LLM providers that provides a unified API while managing model routing, authentication, retries and failover, usage monitoring, and cost optimization—without requiring changes to the application's core business logic.
 
-## System Architecture
+## System Architecture 🤖
 
 ```mermaid
 flowchart TD
@@ -40,7 +40,7 @@ flowchart TD
     K --> L
 ```
 
-## Project Structure
+## Project Structure 📁
 
 ```text
 llm-gateway/
@@ -106,7 +106,7 @@ Create `.env` from `.env.example`; both `.env` and `gateway.db` are ignored by
 Git. The `secrets/` directory is only needed when using Docker secrets, and its
 real secret files are excluded from Git.
 
-## Why Do We Need an LLM Gateway?
+## Why Do We Need an LLM Gateway? 💡
 
 Direct LLM API calls may work for prototypes, but production applications require reliability, scalability, cost control, and observability etc .
 
@@ -125,7 +125,7 @@ Direct LLM API calls may work for prototypes, but production applications requir
 
 
 
-  ## Features
+  ## Features✨
 
   - **One OpenAI-compatible API** — `POST /v1/chat/completions`, `POST /v1/embeddings`, `GET /v1/models`. Existing OpenAI clients work unchanged.
   - **Multi-provider** — OpenAI (`gpt-4o`…), Anthropic (`claude-…`), Gemini (`gemini-…`), and Groq (`groq/model-name`).
@@ -139,7 +139,7 @@ Direct LLM API calls may work for prototypes, but production applications requir
   - **Observability** — opt-in Prometheus metrics, bounded model labels, structured logs, and request-ID propagation.
   - **Swappable storage** — SQLite by default, Postgres via one env var (SQLAlchemy async).
 
-## Quickstart
+## Quickstart 🚀
 
 ### 1. Install prerequisites
 
@@ -364,7 +364,7 @@ curl -s -X PATCH localhost:8000/admin/keys/3 \
   -d '{"monthly_budget_usd":100}'
 ```
 
-## Configuration
+## Configuration ⚙️
 
 All via env / `.env` (see `.env.example`):
 
@@ -385,7 +385,7 @@ All via env / `.env` (see `.env.example`):
 | `MODEL_ALIASES` | `{}` | JSON map of friendly name → litellm model |
 | `FALLBACK_CHAINS` | `{}` | JSON map of model (or `provider/*`) → default fallback model(s), used when a request has no `fallback_models` |
 
-## API
+## API 🌐
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
@@ -400,7 +400,7 @@ All via env / `.env` (see `.env.example`):
 | `GET` | `/metrics` | optional bearer token | Prometheus metrics (disabled by default; omitted from OpenAPI) |
 | `GET` | `/health` | none | Liveness + configured providers |
 
-## CRUD and database usage
+## CRUD and database usage🗄️
 
 The gateway uses async SQLAlchemy models in `app/models.py` and initializes
 tables on startup. SQLite is the default; set `DATABASE_URL` to use PostgreSQL
@@ -438,7 +438,7 @@ stored in the request log. The admin-only `GET /api/stats?days=N` endpoint
 reads and aggregates those records for the dashboard. There are no public
 update or delete endpoints for request logs.
 
-## Docker
+## Docker 🐳
 
 The Compose configuration mounts the Doubleword key as a Docker secret by
 default. Create `secrets\doubleword.key` with that provider key before starting
@@ -455,7 +455,7 @@ For PostgreSQL, set `DATABASE_URL` in `.env` to
 `postgresql+asyncpg://gateway:gateway@db:5432/gateway`, then run
 `docker compose --profile pg up --build`.
 
-## Request Flow
+## Request Flow 🔄
 
 ```mermaid
 flowchart TD
@@ -480,7 +480,7 @@ flowchart TD
 
 ```
 
-## Development
+## Development 🛠️
 
 ```bash
 uv sync
@@ -488,7 +488,7 @@ uv run pytest          # litellm calls are stubbed (no network)
 uv run ruff check app tests
 ```
 
-## Roadmap (post-v1)
+## Roadmap (post-v1) 🗺️
 
 OpenTelemetry tracing · React dashboard · Redis-backed rate-limit & budget
 counters for strict multi-worker limits.
